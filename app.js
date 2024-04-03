@@ -22,6 +22,22 @@ const ALTURA_RAQUETE = 90;
 let xRaquete = 5;
 let yRaquete = yBola - ALTURA_RAQUETE/2;
 
+// Dimensões da Raquete do Oponente
+const LARGURA_RAQUETE_OPOSTO = LARGURA_RAQUETE;
+const ALTURA_RAQUETE_OPOSTO = ALTURA_RAQUETE;
+
+// Posição da Raquete do Oponente
+let xRaqueteOposto = LARGURA_CANVAS - LARGURA_RAQUETE - 5;
+let yRaqueteOposto = yBola - ALTURA_RAQUETE_OPOSTO/2;
+
+// Velocidade do Oponente
+let velocidadeYOposto = 1;
+
+//Placar
+let placarJogador = 0
+let placarOponente = 0
+
+let chanceDeErrar = 30;
 
 function setup() {
   createCanvas(LARGURA_CANVAS, ALTURA_CANVAS);
@@ -46,8 +62,8 @@ function verificarColisaoBola() {
     }
 }
 
-function desenharRaquete() {
-    rect(xRaquete, yRaquete, LARGURA_RAQUETE, ALTURA_RAQUETE);
+function desenharRaquete(x, y) {
+    rect(x, y, LARGURA_RAQUETE, ALTURA_RAQUETE);
 }
 
 function movimentarRaquete() {
@@ -59,20 +75,88 @@ function movimentarRaquete() {
     if (keyIsDown(DOWN_ARROW)) {
         yRaquete += 10;
     }
+
+    yRaquete = constrain(yRaquete, 0, ALTURA_CANVAS - ALTURA_RAQUETE);
 }
 
 function verificarColisaoRaquete() {
-    if (xBola - RAIO < xRaquete + LARGURA_RAQUETE && yBola - RAIO < yRaquete + ALTURA_RAQUETE && yBola + RAIO > yRaquete) {
+    if (xBola - RAIO < xRaquete + LARGURA_RAQUETE && 
+        yBola - RAIO < yRaquete + ALTURA_RAQUETE && 
+        yBola + RAIO > yRaquete) {
         velocidadeXBola *= -1;
+    }
+}
+
+function calculaChanceDeErrar() {
+    if (placarOponente > placarJogador) {
+      chanceDeErrar = 60;
+    }
+    if (placarOponente < placarJogador && chanceDeErrar > 50) {
+        chanceDeErrar -=3;
+  }
+
+}
+function movimentarRaqueteOponente() {
+    // Movimenta a raquete para cima e para baixo
+    velocidadeYOposto = yBola - yRaqueteOposto - ALTURA_RAQUETE_OPOSTO / 2 - chanceDeErrar;
+    yRaqueteOposto += velocidadeYOposto;
+    calculaChanceDeErrar()
+
+    yRaqueteOposto = constrain(yRaqueteOposto, 0, ALTURA_CANVAS - ALTURA_RAQUETE_OPOSTO);
+}
+
+function verificarColisaoRaqueteOposto() {
+    if (xBola + RAIO > xRaqueteOposto && 
+        xBola - RAIO < xRaqueteOposto + LARGURA_RAQUETE_OPOSTO && 
+        yBola + RAIO > yRaqueteOposto && 
+        yBola - RAIO < yRaqueteOposto + ALTURA_RAQUETE_OPOSTO) {
+        velocidadeXBola *= -1;
+    }
+}
+function bolaNaoFicaPresa(){
+    if (xBola - RAIO < 0){
+    xBola = 23
+    }
+}
+
+
+
+function incluiPlacar() {
+    stroke(255);
+    textAlign(CENTER);
+    textSize(16);
+    fill(color(255, 140, 0));
+    rect(150, 10, 40, 20);
+    fill(255);
+    text(placarJogador, 170, 26);
+    fill(color(255, 140, 0));
+    rect(450, 10, 40, 20);
+    fill(255);
+    text(placarOponente, 470, 26);
+}
+
+
+function marcarPonto(){
+    if(xBola >= LARGURA_CANVAS - RAIO){
+        placarJogador += 1
+    }
+    if (xBola < RAIO){
+        placarOponente += 1
     }
 }
 
 function draw() {
     background(0);
     mostrarBola();
-    desenharRaquete();
+    desenharRaquete(xRaquete, yRaquete);
+    desenharRaquete(xRaqueteOposto, yRaqueteOposto);
     movimentarRaquete();
     movimentarBola();
     verificarColisaoBola();
-    verificarColisaoRaquete()
+    movimentarRaqueteOponente();
+    verificarColisaoRaquete();
+    verificarColisaoRaqueteOposto();
+    incluiPlacar()
+    marcarPonto();
+    bolaNaoFicaPresa();
 }
